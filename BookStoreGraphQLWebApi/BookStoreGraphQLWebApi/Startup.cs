@@ -18,6 +18,7 @@ using GraphQL;
 using GraphQL.Types;
 using GraphQL.Server;
 using GraphQL.Server.Ui.Playground;
+using GraphQL.Server.Ui.GraphiQL;
 
 namespace BookStoreGraphQLWebApi
 {
@@ -37,13 +38,13 @@ namespace BookStoreGraphQLWebApi
                 .AddMicrosoftIdentityWebApi(Configuration.GetSection("AzureAd"));
 
             services.AddControllers();
-            //services.AddSingleton<BookType>();
-            //services.AddSingleton<RootQuery>();
-            //services.AddSingleton<Models.Book>();
-            //services.AddSingleton<ISchema>();
-           
-            services.AddScoped<GraphSchema>();
-            services.AddGraphQL().AddGraphTypes(ServiceLifetime.Scoped);
+
+            #region GraphQL
+            services.AddScoped<GraphSchema>(); //dependency injection container
+            services.AddGraphQL() //register all of the types that GraphQL.net uses
+                .AddSystemTextJson() //Support serialization for GraphQL. Adds a GraphQL.Server.Transports.AspNetCore.IGraphQLRequestDeserializer
+                .AddGraphTypes(typeof(GraphSchema), ServiceLifetime.Scoped); //scan the assembly and register all graph types such as the RootQuery and BookType types
+            #endregion
 
 
         }
@@ -63,9 +64,29 @@ namespace BookStoreGraphQLWebApi
             app.UseAuthentication();
             app.UseAuthorization();
 
-
+            #region GraphQL
+            //Add the GraphQL middleware to the HTTP request pipeline
+            //The path to the GraphQL endpoint which defaults to '/graphql'
             app.UseGraphQL<GraphSchema>();
+
+            //GraphQL Playground is a graphical, interactive, in-browser GraphQL IDE,
+            //created by Prisma and based on GraphiQL. 
+            //localhost:XXXX/ui/playground
             app.UseGraphQLPlayground(new PlaygroundOptions());
+
+            //GraphiQL is an interactive in-browser GraphQL IDE.
+            //This is a fantastic developer tool to help you form queries and explore your Schema.
+            //localhost:XXXX/ui/graphiql
+            app.UseGraphQLGraphiQL();
+
+            //Altair GraphQL Client is a beautiful feature-rich GraphQL Client IDE that enables you
+            //interact with any GraphQL server you are authorized to access from any platform you are on.
+            //You can easily test and optimize your GraphQL implementations.
+            //You also have several features to make your GraphQL development process much easier including
+            //subscriptions, query scaffolding, formatting, multiple languages, themes, and many more
+            //localhost:XXXX/ui/altair
+            app.UseGraphQLAltair();
+            #endregion
 
             app.UseEndpoints(endpoints =>
             {

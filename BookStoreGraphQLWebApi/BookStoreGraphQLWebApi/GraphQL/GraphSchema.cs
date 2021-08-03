@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GraphQL.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BookStoreGraphQLWebApi.GraphQL
 {
@@ -10,7 +11,7 @@ namespace BookStoreGraphQLWebApi.GraphQL
     {
         public GraphSchema(IServiceProvider provider) : base(provider)
         {
-            Query = new RootQuery();
+            Query = provider.GetRequiredService<RootQuery>();
             //Mutation = new ChatMutation(chat);
             //Subscription = new ChatSubscriptions(chat);
         }
